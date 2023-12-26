@@ -27,7 +27,6 @@ Copyright (c) 2023 EyeTrackVR <3
 """
 #  LEAP = Lightweight Eyelid And Pupil
 import os
-
 os.environ["OMP_NUM_THREADS"] = "1"
 import onnxruntime
 import numpy as np
@@ -51,9 +50,18 @@ def run_model(input_queue, output_queue, session):
         if frame is None:
             break
 
+        # to_tensor = transforms.ToTensor()
+        # img_tensor = to_tensor(frame)
+        # img_tensor.unsqueeze_(0)
+        # img_np = img_tensor.numpy()
         img_np = np.array(frame)
+        # Normalize the pixel values to [0, 1] and convert the data type to float32
         img_np = img_np.astype(np.float32) / 255.0
+
+        # Transpose the dimensions from (height, width, channels) to (channels, height, width)
         img_np = np.transpose(img_np, (2, 0, 1))
+
+        # Add a batch dimension
         img_np = np.expand_dims(img_np, axis=0)
         ort_inputs = {session.get_inputs()[0].name: img_np}
         pre_landmark = session.run(None, ort_inputs)
@@ -68,16 +76,16 @@ class LEAP_C(object):
         onnxruntime.disable_telemetry_events()
         # Config variables
         self.num_threads = 3  # Number of python threads to use (using ~1 more than needed to achieve wanted fps yields lower cpu usage)
-        self.queue_max_size = 1  # Optimize for best CPU usage, Memory, and Latency. A maxsize is needed to not create a potential memory leak.
+        self.queue_max_size = 3  # Optimize for best CPU usage, Memory, and Latency. A maxsize is needed to not create a potential memory leak.
         if platform.system() == "Darwin":
             self.model_path = resource_path(
-                "Models/mommy072623.onnx"
+                "EyeTrackApp/Models/mommy072623.onnx"
             )  # funny MacOS files issues :P
         else:
             self.model_path = resource_path("Models\mommy072623.onnx")
         self.interval = 1  # FPS print update rate
         self.low_priority = True  # set process priority to low (may cause issues when unfocusing? reported by one, not reproducable)
-        self.print_fps = False
+        self.print_fps = True
         # Init variables
         self.frames = 0
         self.queues = []
@@ -126,10 +134,10 @@ class LEAP_C(object):
         self.y = 0
 
         self.ort_session1 = onnxruntime.InferenceSession(
-            self.model_path, opts, providers=["CPUExecutionProvider"]
+            self.model_path, opts, providers=['DmlExecutionProvider', 'CPUExecutionProvider']
         )
-        # ort_session1 = onnxruntime.InferenceSession("C:/Users/beaul/PycharmProjects/EyeTrackVR/EyeTrackApp/Models/mommy062023.onnx", opts, providers=['DmlExecutionProvider'])
-        threads = []
+        # ort_session1 = onnxruntime.InferenceSession("C:/Users/%USERNAME%/Desktop/eyetracking/EyeTrackVR-2.0-beta-feature-branch-cpu/EyeTrackVR-2.0-beta-feature-branch/EyeTrackApp/Models/mommy072623.onnx", opts, providers=['DmlExecutionProvider', 'CPUExecutionProvider'])
+        threads = [2]
         for i in range(self.num_threads):
             thread = threading.Thread(
                 target=run_model,
