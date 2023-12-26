@@ -192,7 +192,7 @@ def main():
     # GUI Render loop
     while True:
         # First off, check for any events from the GUI
-        event, values = window.read(timeout=2)
+        event, values = window.read(timeout=7)
 
         # If we're in either mode and someone hits q, quit immediately
         if event == "Exit" or event == sg.WIN_CLOSED:
@@ -242,8 +242,8 @@ def main():
             settings[1].stop()
             eyes[1].start()
             eyes[0].start()
-            window[LEFT_EYE_NAME].update(visible=True)
-            window[RIGHT_EYE_NAME].update(visible=True)
+            window[LEFT_EYE_NAME].update(visible=False)
+            window[RIGHT_EYE_NAME].update(visible=False)
             window[SETTINGS_NAME].update(visible=False)
             window[ALGO_SETTINGS_NAME].update(visible=False)
             config.eye_display_id = EyeId.BOTH
