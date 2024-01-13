@@ -66,7 +66,7 @@ class LEAP_C(object):
     def __init__(self):
         onnxruntime.disable_telemetry_events()
         # Config variables
-        self.num_threads = 3  # Number of python threads to use (using ~1 more than needed to achieve wanted fps yields lower cpu usage)
+        self.num_threads = 2  # Number of python threads to use (using ~1 more than needed to achieve wanted fps yields lower cpu usage)
         self.queue_max_size = 1  # Optimize for best CPU usage, Memory, and Latency. A maxsize is needed to not create a potential memory leak.
         if platform.system() == "Darwin":
             self.model_path = resource_path(
@@ -91,8 +91,8 @@ class LEAP_C(object):
             self.queues.append(self.queue)
 
         opts = onnxruntime.SessionOptions()
-        opts.inter_op_num_threads = 1
-        opts.intra_op_num_threads = 1
+        opts.inter_op_num_threads = 3
+        opts.intra_op_num_threads = 3
         opts.graph_optimization_level = (
             onnxruntime.GraphOptimizationLevel.ORT_ENABLE_ALL
         )
@@ -136,9 +136,9 @@ class LEAP_C(object):
         self.y = 0
 
         self.ort_session1 = onnxruntime.InferenceSession(
-            self.model_path, opts, providers=["CPUExecutionProvider"]
+            self.model_path, opts, providers=["DmlExecutionProvider"]
         )
-        # ort_session1 = onnxruntime.InferenceSession("C:/Users/beaul/PycharmProjects/EyeTrackVR/EyeTrackApp/Models/mommy062023.onnx", opts, providers=['DmlExecutionProvider'])
+        # ort_session1 = onnxruntime.InferenceSession("C:/Users/krave/Desktop/eyetracking/EyeTrackVR-2.0-beta-feature-branch-cpu/EyeTrackVR-2.0-beta-feature-branch/EyeTrackApp/Models/leap123023.onnx", opts, providers=['DmlExecutionProvider'])
         threads = []
         for i in range(self.num_threads):
             thread = threading.Thread(
